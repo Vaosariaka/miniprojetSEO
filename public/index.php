@@ -1,0 +1,383 @@
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/../src/bootstrap.php';
+
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
+$uri = rtrim($uri, '/');
+$uri = $uri === '' ? '/' : $uri;
+$method = $_SERVER['REQUEST_METHOD'];
+
+$flash = $_SESSION['flash'] ?? null;
+unset($_SESSION['flash']);
+
+$pageTitle = 'Guerre en Iran - Informations et analyses';
+$metaDescription = 'Site d informations sur la guerre en Iran: contexte, chronologie et consequences geopolitiques.';
+$pageHeading = 'Guerre en Iran';
+$bodyClass = 'front';
+$content = '';
+$extraHead = '';
+
+try {
+    if ($uri === '/admin/logout') {
+        session_destroy();
+        header('Location: /admin/login');
+        exit;
+    }
+
+    if ($uri === '/admin/login') {
+        $bodyClass = 'admin';
+        $pageTitle = 'BackOffice - Connexion';
+        $metaDescription = 'Connexion administrateur du BackOffice.';
+        $pageHeading = 'Connexion BackOffice';
+
+        if (is_logged_in()) {
+            redirect_to('/admin');
+        }
+
+        $error = null;
+        if ($method === 'POST') {
+            if (!validate_csrf($_POST['csrf_token'] ?? null)) {
+                $error = 'Session invalide. Recharge la page.';
+            } else {
+                $username = trim((string) ($_POST['username'] ?? ''));
+                $password = (string) ($_POST['password'] ?? '');
+
+                $stmt = $pdo->prepare('SELECT id, username, password_hash FROM users WHERE username = :username LIMIT 1');
+                $stmt->execute(['username' => $username]);
+                $user = $stmt->fetch();
+
+                if (!$user || !password_verify($password, $user['password_hash'])) {
+                    $error = 'Identifiants invalides.';
+                } else {
+                    $_SESSION['user_id'] = (int) $user['id'];
+                    $_SESSION['username'] = $user['username'];
+                    $_SESSION['flash'] = 'Connexion reussie.';
+                    redirect_to('/admin');
+                }
+            }
+        }
+
+        ob_start();
+        ?>
+        <section class="panel narrow">
+            <h2>Acces administration</h2>
+            <p>Utilisateur par defaut: <strong>admin</strong> - Mot de passe: <strong>admin123</strong></p>
+            <?php if ($error): ?>
+                <p class="flash error"><?= esc($error) ?></p>
+            <?php endif; ?>
+            <form method="post" action="/admin/login" class="stack">
+                <input type="hidden" name="csrf_token" value="<?= esc(csrf_token()) ?>">
+                <label for="username">Nom utilisateur</label>
+                <input id="username" name="username" type="text" value="admin" required>
+
+                <label for="password">Mot de passe</label>
+                <input id="password" name="password" type="password" value="admin123" required>
+
+                <button type="submit">Se connecter</button>
+            </form>
+        </section>
+        <?php
+        $content = (string) ob_get_clean();
+    } elseif ($uri === '/admin' || $uri === '/admin/article/new' || preg_match('#^/admin/article/([0-9]+)/edit$#', $uri, $matches) || preg_match('#^/admin/article/([0-9]+)/delete$#', $uri, $matchesDelete)) {
+        ensure_admin();
+        $bodyClass = 'admin';
+        $pageTitle = 'BackOffice - Gestion contenus';
+        $metaDescription = 'BackOffice de gestion des contenus du site Guerre en Iran.';
+        $pageHeading = 'BackOffice';
+
+        if (preg_match('#^/admin/article/([0-9]+)/delete$#', $uri, $deleteMatch)) {
+            if ($method !== 'POST' || !validate_csrf($_POST['csrf_token'] ?? null)) {
+                http_response_code(400);
+                $content = '<section class="panel"><p class="flash error">Requete invalide.</p></section>';
+            } else {
+                delete_article($pdo, (int) $deleteMatch[1]);
+                $_SESSION['flash'] = 'Article supprime.';
+                redirect_to('/admin');
+            }
+        } elseif ($uri === '/admin') {
+            $articles = fetch_all_articles($pdo);
+
+            ob_start();
+            ?>
+            <section class="panel">
+                <div class="between">
+                    <h2>Liste des contenus</h2>
+                    <a class="btn" href="/admin/article/new">Nouvel article</a>
+                </div>
+                <?php if ($flash): ?>
+                    <p class="flash success"><?= esc((string) $flash) ?></p>
+                <?php endif; ?>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Titre</th>
+                        <th>Slug URL</th>
+                        <th>Etat</th>
+                        <th>Maj</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($articles as $item): ?>
+                        <tr>
+                            <td><?= (int) $item['id'] ?></td>
+                            <td><?= esc($item['title']) ?></td>
+                            <td>/article/<?= esc($item['slug']) ?></td>
+                            <td><?= (int) $item['is_published'] === 1 ? 'Publie' : 'Brouillon' ?></td>
+                            <td><?= esc((string) $item['updated_at']) ?></td>
+                            <td class="actions">
+                                <a href="/admin/article/<?= (int) $item['id'] ?>/edit">Modifier</a>
+                                <form method="post" action="/admin/article/<?= (int) $item['id'] ?>/delete" onsubmit="return confirm('Supprimer cet article ?');">
+                                    <input type="hidden" name="csrf_token" value="<?= esc(csrf_token()) ?>">
+                                    <button type="submit" class="link danger">Supprimer</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </section>
+            <?php
+            $content = (string) ob_get_clean();
+        } else {
+            $isEdit = preg_match('#^/admin/article/([0-9]+)/edit$#', $uri, $editMatch) === 1;
+            $article = [
+                'title' => '',
+                'slug' => '',
+                'summary' => '',
+                'content' => '<h2>Nouveau contenu</h2><p>Redige ici.</p>',
+                'image_path' => 'assets/img/iran.png',
+                'image_alt' => 'Illustration du conflit en Iran',
+                'meta_title' => 'Guerre en Iran - article',
+                'meta_description' => 'Article du site d information sur la guerre en Iran.',
+                'is_published' => 1,
+            ];
+            $error = null;
+
+            if ($isEdit) {
+                $existing = fetch_article_by_id($pdo, (int) $editMatch[1]);
+                if (!$existing) {
+                    http_response_code(404);
+                    $content = '<section class="panel"><p class="flash error">Article introuvable.</p></section>';
+                } else {
+                    $article = $existing;
+                }
+            }
+
+            if ($content === '') {
+                if ($method === 'POST') {
+                    if (!validate_csrf($_POST['csrf_token'] ?? null)) {
+                        $error = 'Session invalide. Recharge la page.';
+                    } else {
+                        $title = trim((string) ($_POST['title'] ?? ''));
+                        $slug = normalize_slug((string) ($_POST['slug'] ?? $title));
+                        $summary = trim((string) ($_POST['summary'] ?? ''));
+                        $richContent = trim((string) ($_POST['content'] ?? ''));
+                        $imagePath = trim((string) ($_POST['image_path'] ?? 'assets/img/iran-war.svg'));
+                        $imageAlt = trim((string) ($_POST['image_alt'] ?? 'Illustration du conflit en Iran'));
+                        $metaTitle = trim((string) ($_POST['meta_title'] ?? $title));
+                        $metaDescription = trim((string) ($_POST['meta_description'] ?? $summary));
+                        $isPublished = isset($_POST['is_published']) ? 1 : 0;
+
+                        if ($title === '' || $summary === '' || $richContent === '' || $imageAlt === '' || $metaTitle === '' || $metaDescription === '') {
+                            $error = 'Tous les champs SEO et contenu sont obligatoires.';
+                        } else {
+                            $payload = [
+                                'title' => $title,
+                                'slug' => $slug,
+                                'summary' => $summary,
+                                'content' => $richContent,
+                                'image_path' => $imagePath,
+                                'image_alt' => $imageAlt,
+                                'meta_title' => $metaTitle,
+                                'meta_description' => $metaDescription,
+                                'is_published' => $isPublished,
+                            ];
+
+                            try {
+                                if ($isEdit) {
+                                    update_article($pdo, (int) $article['id'], $payload);
+                                    $_SESSION['flash'] = 'Article mis a jour.';
+                                } else {
+                                    create_article($pdo, $payload);
+                                    $_SESSION['flash'] = 'Article cree.';
+                                }
+
+                                redirect_to('/admin');
+                            } catch (PDOException $exception) {
+                                $error = 'Impossible de sauvegarder. Verifie que le slug est unique.';
+                            }
+                        }
+
+                        $article = array_merge($article, [
+                            'title' => $title,
+                            'slug' => $slug,
+                            'summary' => $summary,
+                            'content' => $richContent,
+                            'image_path' => $imagePath,
+                            'image_alt' => $imageAlt,
+                            'meta_title' => $metaTitle,
+                            'meta_description' => $metaDescription,
+                            'is_published' => $isPublished,
+                        ]);
+                    }
+                }
+
+                $extraHead = '<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>\n'
+                    . '<script>tinymce.init({selector: ".tiny-editor", menubar: false, height: 360, plugins: "lists link table code", toolbar: "undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | link table | code"});</script>';
+
+                ob_start();
+                ?>
+                <section class="panel">
+                    <h2><?= $isEdit ? 'Modifier article' : 'Creer un article' ?></h2>
+                    <p>Utilisation TinyMCE pour le texte principal (editeur WYSIWYG).</p>
+                    <?php if ($error): ?>
+                        <p class="flash error"><?= esc($error) ?></p>
+                    <?php endif; ?>
+                    <form method="post" action="<?= esc($uri) ?>" class="stack">
+                        <input type="hidden" name="csrf_token" value="<?= esc(csrf_token()) ?>">
+
+                        <label for="title">Titre (H1)</label>
+                        <input id="title" name="title" type="text" required value="<?= esc((string) $article['title']) ?>">
+
+                        <label for="slug">Slug URL normalise (ex: guerre-en-iran)</label>
+                        <input id="slug" name="slug" type="text" required value="<?= esc((string) $article['slug']) ?>">
+
+                        <label for="summary">Resume</label>
+                        <textarea id="summary" name="summary" rows="4" required><?= esc((string) $article['summary']) ?></textarea>
+
+                        <label for="content">Contenu (utiliser H2, H3, H4...)</label>
+                        <textarea id="content" class="tiny-editor" name="content" rows="12" required><?= esc((string) $article['content']) ?></textarea>
+
+                        <label for="image_path">Chemin image</label>
+                        <input id="image_path" name="image_path" type="text" value="<?= esc((string) $article['image_path']) ?>">
+
+                        <label for="image_alt">Texte ALT image</label>
+                        <input id="image_alt" name="image_alt" type="text" required value="<?= esc((string) $article['image_alt']) ?>">
+
+                        <label for="meta_title">Meta title</label>
+                        <input id="meta_title" name="meta_title" type="text" required value="<?= esc((string) $article['meta_title']) ?>">
+
+                        <label for="meta_description">Meta description</label>
+                        <textarea id="meta_description" name="meta_description" rows="3" required><?= esc((string) $article['meta_description']) ?></textarea>
+
+                        <label class="inline">
+                            <input type="checkbox" name="is_published" value="1" <?= (int) $article['is_published'] === 1 ? 'checked' : '' ?>>
+                            Publier en FrontOffice
+                        </label>
+
+                        <div class="between">
+                            <a class="btn secondary" href="/admin">Retour</a>
+                            <button type="submit">Sauvegarder</button>
+                        </div>
+                    </form>
+                </section>
+                <?php
+                $content = (string) ob_get_clean();
+            }
+        }
+    } elseif ($uri === '/') {
+        $articles = fetch_published_articles($pdo);
+
+        ob_start();
+        ?>
+        <section class="hero">
+            <h2>Site d informations</h2>
+            <p>Suivi des evenements, contexte et analyses autour de la guerre en Iran.</p>
+        </section>
+
+        <section class="grid">
+            <?php foreach ($articles as $article): ?>
+                <article class="card">
+                    <img src="/<?= esc($article['image_path']) ?>" alt="<?= esc($article['image_alt']) ?>" loading="lazy">
+                    <h2><?= esc($article['title']) ?></h2>
+                    <p><?= esc($article['summary']) ?></p>
+                    <a class="btn" href="/article/<?= esc($article['slug']) ?>">Lire l article</a>
+                </article>
+            <?php endforeach; ?>
+        </section>
+        <?php
+        $content = (string) ob_get_clean();
+    } elseif (preg_match('#^/article/([a-z0-9-]+)$#', $uri, $articleMatch)) {
+        $slug = $articleMatch[1];
+        $article = fetch_article_by_slug($pdo, $slug);
+
+        if (!$article) {
+            http_response_code(404);
+            $pageTitle = 'Page introuvable - Guerre en Iran';
+            $metaDescription = 'Contenu introuvable.';
+            $pageHeading = 'Page introuvable';
+            $content = '<section class="panel"><h2>404</h2><p>Article introuvable.</p><p><a class="btn" href="/">Retour accueil</a></p></section>';
+        } else {
+            $pageTitle = $article['meta_title'];
+            $metaDescription = $article['meta_description'];
+            $pageHeading = $article['title'];
+
+            ob_start();
+            ?>
+            <article class="article-detail">
+                <img src="/<?= esc($article['image_path']) ?>" alt="<?= esc($article['image_alt']) ?>" class="cover">
+                <p class="date">Publication: <?= esc((string) $article['published_at']) ?></p>
+                <p class="summary"><?= esc($article['summary']) ?></p>
+                <section class="rich-content">
+                    <?= $article['content'] ?>
+                </section>
+                <p><a class="btn secondary" href="/">Retour aux articles</a></p>
+            </article>
+            <?php
+            $content = (string) ob_get_clean();
+        }
+    } else {
+        http_response_code(404);
+        $pageTitle = 'Page introuvable - Guerre en Iran';
+        $metaDescription = 'Contenu introuvable.';
+        $pageHeading = 'Page introuvable';
+        $content = '<section class="panel"><h2>404</h2><p>La page demandee est introuvable.</p><p><a class="btn" href="/">Retour accueil</a></p></section>';
+    }
+} catch (Throwable $throwable) {
+    http_response_code(500);
+    $bodyClass = 'error';
+    $pageTitle = 'Erreur serveur';
+    $metaDescription = 'Une erreur est survenue.';
+    $pageHeading = 'Erreur serveur';
+    $content = '<section class="panel"><h2>500</h2><p>Erreur serveur. Verifie la connexion a la base.</p></section>';
+}
+?>
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= esc($pageTitle) ?></title>
+    <meta name="description" content="<?= esc($metaDescription) ?>">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="<?= esc('http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $uri) ?>">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <?= $extraHead ?>
+</head>
+<body class="<?= esc($bodyClass) ?>">
+<header>
+    <div class="container between">
+        <div>
+            <h1><?= esc($pageHeading) ?></h1>
+            <p class="tagline">Informations, chronologie et impacts regionaux</p>
+        </div>
+        <nav aria-label="Navigation principale">
+            <a href="/">FrontOffice</a>
+            <a href="/admin">BackOffice</a>
+            <?php if (is_logged_in()): ?>
+                <a href="/admin/logout">Se deconnecter</a>
+            <?php endif; ?>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+    <?= $content ?>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,17 @@
+Options +FollowSymlinks
+RewriteEngine On
+
+# URL courte demandee: /article/guerre.html -> /article/guerre
+RewriteRule ^article/([a-z0-9-]+)\.html$ /article/$1 [R=301,L,NC]
+
+#
+# Allow direct access to existing files/directories.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Route all app URLs through index.php.
+RewriteRule ^ index.php [QSA,L]
+
+
+
