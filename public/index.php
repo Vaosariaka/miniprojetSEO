@@ -33,8 +33,8 @@ if ($uri === '/' || $uri === $base . '/') {
 } 
 elseif ($uri === $base . '/save-article' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $layout = 'layoutBackOffice.php'; // optionnel
     saveArticle($pdo);
+    exit; // 🔥 obligatoire
 } else {
 
     $pageTitle = "404";
