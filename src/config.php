@@ -7,8 +7,8 @@ return [
         'host' => getenv('DB_HOST') ?: '127.0.0.1',
         'port' => (int) (getenv('DB_PORT') ?: 3306),
         'name' => getenv('DB_NAME') ?: 'iran_war_db',
-        'user' => getenv('DB_USER') ?: 'iran_user',
-        'password' => getenv('DB_PASSWORD') ?: 'iran_pass',
+        'user' => getenv('DB_USER') ?: 'root',
+        'password' => getenv('DB_PASSWORD') ?: '',
         'charset' => 'utf8mb4',
     ],
     'app' => [
