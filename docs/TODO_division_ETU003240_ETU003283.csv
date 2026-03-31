@@ -1,26 +1,26 @@
-Etape,Sous-tache,Responsable,Statut,Priorite,Livrable attendu
-1. Cadrage,Analyser le sujet et les exigences (FO/BO/SEO/Docker),ETU003240,Fait,Haute,Check-list des exigences
-1. Cadrage,Decouper le travail en lots et planning,ETU003283,Fait,Haute,Plan de travail
-2. Setup projet,Creer structure dossiers (public/src/docker/docs),ETU003240,Fait,Haute,Arborescence projet
-2. Setup projet,Initialiser depot GitHub et branche main,ETU003283,Fait,Haute,Depot distant pret
-3. Docker,Ecrire Dockerfile PHP Apache,ETU003240,Fait,Haute,Conteneur web buildable
-3. Docker,Configurer docker-compose (web + db + volumes),ETU003283,Fait,Haute,Stack docker lance
-3. Docker,Verifier demarrage sans conflit ports/noms,ETU003240,Fait,Moyenne,Stack stable
-4. Base de donnees,Concevoir modelisation tables articles/users,ETU003283,Fait,Haute,Schema logique
-4. Base de donnees,Ecrire script SQL init + seed article,ETU003240,Fait,Haute,Script init.sql
-4. Base de donnees,Verifier CRUD SQL et coherence donnees,ETU003283,Fait,Moyenne,Tests DB
-5. FrontOffice,Developper page accueil et liste contenus,ETU003240,Fait,Haute,FO operationnel
-5. FrontOffice,Developper page detail article SEO,ETU003283,Fait,Haute,Route article fonctionnelle
-5. FrontOffice,Integrer images et alt text,ETU003240,Fait,Moyenne,Accessibilite image
-6. BackOffice,Implementer login/logout admin,ETU003283,Fait,Haute,Authentification BO
-6. BackOffice,Implementer CRUD article (create/edit/delete),ETU003283,Fait,Haute,Gestion contenus
-6. BackOffice,Integrer editeur TinyMCE en local (offline),ETU003283,Fait,Moyenne,Edition riche sans internet
-7. URL rewriting,Configurer .htaccess front controller,ETU003240,Fait,Haute,Routes propres
-7. URL rewriting,Ajouter route .html vers route canonique,ETU003283,Fait,Moyenne,301 SEO
-8. SEO,Definir meta title et meta description dynamiques,ETU003240,Fait,Haute,Balises meta OK
-8. SEO,Verifier structure H1/H2/H3 du contenu,ETU003283,Fait,Haute,Semantique valide
-8. SEO,Verifier canonical et robots,ETU003240,Fait,Moyenne,SEO technique propre
-9. Qualite,Tests manuels FO/BO (desktop + mobile),ETU003283,A faire,Haute,Rapport de test
-9. Qualite,Execution Lighthouse local (desktop),ETU003283,A faire,Haute,Capture score desktop
-9. Qualite,Execution Lighthouse local (mobile),ETU003283,A faire,Haute,Capture score mobile
-10. Documentation,Completer document technique (modelisation + captures),ETU003240,En cours,Haute,Document PDF/MD
+Etape,Sous-tache,Responsable,Statut,Estimation,Reel
+1. Cadrage,Analyser le sujet et les exigences (FO/BO/SEO/Docker),ETU003240,Fait,20,20
+1. Cadrage,Decouper le travail en lots et planning,ETU003283,Fait,10,15
+2. Setup projet,Creer structure dossiers (public/src/docker/docs),ETU003240,Fait,10,15
+2. Setup projet,Initialiser depot GitHub et branche main,ETU003283,Fait,15,15
+3. Docker,Ecrire Dockerfile PHP Apache,ETU003240,Fait,15,15
+3. Docker,Configurer docker-compose (web + db + volumes),ETU003283,Fait,10,10
+3. Docker,Verifier demarrage sans conflit ports/noms,ETU003240,Fait,5,5
+4. Base de donnees,Concevoir modelisation tables articles/users,ETU003283,Fait,15,15
+4. Base de donnees,Ecrire script SQL init + seed article,ETU003240,Fait,15,15
+4. Base de donnees,Verifier CRUD SQL et coherence donnees,ETU003283,Fait,15,15
+5. FrontOffice,Developper page accueil et liste contenus,ETU003240,Fait,20,20
+5. FrontOffice,Developper page detail article SEO,ETU003283,Fait,20,20
+5. FrontOffice,Integrer images et alt text,ETU003240,Fait,10,10
+6. BackOffice,Implementer login/logout admin,ETU003283,Fait,15,15
+6. BackOffice,Implementer CRUD article (create/edit/delete),ETU003240,Fait,15,15
+6. BackOffice,Integrer editeur TinyMCE en local (offline),ETU003283,Fait,30,30
+7. URL rewriting,Configurer .htaccess front controller,ETU003240,Fait,15,15
+7. URL rewriting,Ajouter route .html vers route canonique,ETU003283,Fait,5,5
+8. SEO,Definir meta title et meta description dynamiques,ETU003240,Fait,10,10
+8. SEO,Verifier structure H1/H2/H3 du contenu,ETU003283,Fait,15,15
+8. SEO,Verifier canonical et robots,ETU003240,Fait,20,20
+9. Qualite,Tests manuels FO/BO (desktop + mobile),ETU003283,A faire,5,5
+9. Qualite,Execution Lighthouse local (desktop),ETU003240,A faire,5,5
+9. Qualite,Execution Lighthouse local (mobile),ETU003283,A faire,5,5
+10. Documentation,Completer document technique (modelisation + captures),ETU003240,En cours,20,20
