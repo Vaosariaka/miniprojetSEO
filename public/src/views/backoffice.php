@@ -344,7 +344,7 @@
         </div>
 
         <div class="editor-form">
-            <form id="articleForm" method="POST" action="/miniprojetSEO/public/save-article"  enctype="multipart/form-data" >
+            <form id="articleForm" method="POST" action="<?= esc(($base ?? '') . '/save-article') ?>" enctype="application/x-www-form-urlencoded">
                 <div class="form-group">
                     <label><i class="fas fa-heading"></i> Titre de l'article *</label>
                     <input type="text" name="title" id="title" placeholder="Ex: Guerre en Iran : analyse complète du conflit" required>
@@ -403,7 +403,7 @@
                         <label><i class="fas fa-flag"></i> Statut</label>
                         <select name="status" id="status">
                             <option value="draft">📝 Brouillon</option>
-                            <option value="published">✅ Publié</option>
+                            <option value="published" selected>✅ Publié</option>
                             <option value="pending_review">⏳ En attente de relecture</option>
                             <option value="scheduled">📅 Programmé</option>
                         </select>
@@ -421,9 +421,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label><i class="fas fa-image"></i> Image à la une</label>
-                    <input type="file" name="featured_image" id="featured_image" accept="image/*">
-                    <small style="color:#64748b;">Choisissez une image (jpg, png, webp...)</small>
+                    <label><i class="fas fa-image"></i> Image à la une (ID média)</label>
+                    <input type="number" name="featured_media_id" id="featured_media_id" placeholder="ID de l'image dans la médiathèque">
+                    <small style="color:#64748b;">Utilisez l'ID du média uploadé</small>
                 </div>
 
                 <div class="form-group">
@@ -577,6 +577,7 @@
             const slug = document.getElementById('slug').value.trim();
             const status = document.getElementById('status').value;
             const publishedAt = document.getElementById('published_at').value;
+            const featuredMediaId = document.getElementById('featured_media_id').value;
             const metaTitle = document.getElementById('meta_title').value.trim();
             const metaDescription = document.getElementById('meta_description').value.trim();
             
@@ -631,6 +632,7 @@
             formData.append('slug', finalSlug);
             formData.append('status', status);
             if (publishedAt) formData.append('published_at', publishedAt);
+            if (featuredMediaId) formData.append('featured_media_id', featuredMediaId);
             formData.append('content_html', contentHtml);
             formData.append('is_breaking', isBreaking.toString());
             formData.append('is_featured', isFeatured.toString());
@@ -647,7 +649,7 @@
             submitBtn.disabled = true;
             
             try {
-                const response = await fetch('/miniprojetSEO/public/save-article', {
+                const response = await fetch('<?= esc(($base ?? '') . '/save-article') ?>', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -749,8 +751,9 @@
             document.getElementById('subtitle').value = '';
             document.getElementById('excerpt').value = '';
             document.getElementById('slug').value = '';
-            document.getElementById('status').value = 'draft';
+            document.getElementById('status').value = 'published';
             document.getElementById('published_at').value = '';
+            document.getElementById('featured_media_id').value = '';
             document.getElementById('meta_title').value = '';
             document.getElementById('meta_description').value = '';
             document.querySelector('input[name="is_breaking"]').checked = false;

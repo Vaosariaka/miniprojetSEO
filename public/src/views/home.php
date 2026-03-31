@@ -1,37 +1,36 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Actualités - ActuMonde</title>
-    <style>
-        /* Copiez tout le CSS ci-dessus ici */
-    </style>
-</head>
-<body>
-<?php if (!empty($articles)): ?>
-    <article class="hero-lead">
-        <?php if (!empty($articles[0]['image_path'])): ?>
-            <img src="/miniprojetSEO/public/<?= esc($articles[0]['image_path']) ?>" alt="<?= esc($articles[0]['image_alt'] ?? $articles[0]['title']) ?>" loading="eager">
-        <?php else: ?>
-            <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=900&q=80" alt="Image par défaut" loading="eager">
-        <?php endif; ?>
-        <div class="hero-lead-text">
-            <div class="section-tag"><?= esc($articles[0]['category_name'] ?? '') ?></div>
-            <h2><?= esc($articles[0]['title']) ?></h2>
-            <p><?= esc($articles[0]['summary']) ?></p>
-            <div class="article-meta">
-                <span class="byline">Par <?= esc($articles[0]['author_name'] ?? '') ?></span>
-                <span class="timestamp"><i class="far fa-clock"></i> <?= esc($articles[0]['published_at']) ?></span>
-                <a href="/miniprojetSEO/public/article/<?= esc($articles[0]['slug']) ?>" class="read-more">Lire l'article <i class="fas fa-arrow-right"></i></a>
-            </div>
+<?php if (empty($articles)): ?>
+    <article class="article-row">
+        <div class="article-row-body">
+            <div class="section-tag">Info</div>
+            <h4>Pas encore d'autres articles publies</h4>
+            <p>L'article principal est affiche dans la section A la une.</p>
         </div>
     </article>
 <?php else: ?>
-    <p>Aucun article publié pour le moment.</p>
+    <?php foreach ($articles as $article): ?>
+        <article class="article-row">
+            <img
+                src="<?= esc($article['image_path'] ?? 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=80') ?>"
+                alt="<?= esc($article['image_alt'] ?? $article['title']) ?>"
+            >
+            <div class="article-row-body">
+                <div class="section-tag"><?= esc($article['category_name'] ?? 'Actualite') ?></div>
+                <h4>
+                    <a href="<?= esc(($base ?? '') . '/article/' . ($article['slug'] ?? '')) ?>">
+                        <?= esc($article['title'] ?? '') ?>
+                    </a>
+                </h4>
+                <p><?= esc($article['summary'] ?? '') ?></p>
+                <div class="article-meta">
+                    <span class="byline"><?= esc($article['author_name'] ?? 'Redaction') ?></span>
+                    <span class="timestamp"><i class="far fa-clock"></i> <?= esc($article['published_at'] ?? '') ?></span>
+                    <?php if (!empty($article['slug'])): ?>
+                        <a href="<?= esc(($base ?? '') . '/article/' . $article['slug']) ?>" class="read-more">
+                            Voir article <i class="fas fa-arrow-right"></i>
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </article>
+    <?php endforeach; ?>
 <?php endif; ?>
-</body>
-</html>
-
-
-

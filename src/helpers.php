@@ -312,8 +312,6 @@ function fetch_article_by_slug(PDO $pdo, string $slug): ?array
             a.*,
             a.content_html as content,
             a.excerpt as summary,
-            a.image_path,
-            a.image_alt,
             c.id as category_id,
             c.name as category_name,
             c.slug as category_slug,
@@ -643,7 +641,7 @@ function upload_media(PDO $pdo, int $userId, array $file, string $targetDir = '/
 // FONCTIONS UTILITAIRES
 // =============================================================================
 
-function normalize_slug1(string $input): string
+function normalize_slug(string $input): string
 {
     $slug = strtolower(trim($input));
     $slug = str_replace(

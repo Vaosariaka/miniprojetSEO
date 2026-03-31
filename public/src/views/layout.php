@@ -143,6 +143,10 @@
             transition: background 0.2s;
         }
         .btn-subscribe:hover { background: var(--accent); }
+        .btn-link {
+            text-decoration: none;
+            display: inline-block;
+        }
         .icon-btn {
             background: none;
             border: none;
@@ -923,9 +927,18 @@
 <div class="ticker-wrap" aria-live="polite">
     <div class="ticker-label">En direct</div>
     <div class="ticker-track" id="tickerTrack">
-        <?php foreach ($articles as $i => $article): ?>
-        <span><?= esc($article['title']) ?></span>
-        <?php endforeach; ?>
+        <span>Sommet du G20 à Rio — les dirigeants s'accordent sur la taxe sur la fortune</span>
+        <span>Conflit au Moyen-Orient — cessez-le-feu fragile en vigueur depuis 48h</span>
+        <span>Ukraine — nouvelles négociations à Genève, reprise des pourparlers</span>
+        <span>Bourse de Paris — le CAC 40 progresse de 0,8 % à l'ouverture</span>
+        <span>Sahel — retrait des dernières troupes françaises du Mali confirmé</span>
+        <span>Changement climatique — rapport de l'ONU : 2025, année la plus chaude jamais enregistrée</span>
+        <span>Sommet du G20 à Rio — les dirigeants s'accordent sur la taxe sur la fortune</span>
+        <span>Conflit au Moyen-Orient — cessez-le-feu fragile en vigueur depuis 48h</span>
+        <span>Ukraine — nouvelles négociations à Genève, reprise des pourparlers</span>
+        <span>Bourse de Paris — le CAC 40 progresse de 0,8 % à l'ouverture</span>
+        <span>Sahel — retrait des dernières troupes françaises du Mali confirmé</span>
+        <span>Changement climatique — rapport de l'ONU : 2025, année la plus chaude jamais enregistrée</span>
     </div>
 </div>
 
@@ -943,7 +956,8 @@
             <div class="header-date" id="currentDate"></div>
             <div class="header-actions">
                 <button class="icon-btn" aria-label="Compte"><i class="far fa-user-circle"></i></button>
-                <button class="btn-subscribe">S'abonner</button>
+                <a class="btn-subscribe btn-link" href="<?= esc(($base ?? '') . '/login') ?>">Login</a>
+                <a class="btn-subscribe btn-link" href="<?= esc(($base ?? '') . '/back') ?>">BackOffice</a>
             </div>
         </div>
     </div>
@@ -972,56 +986,198 @@
 </header>
 
 <div class="page-wrap">
+    <?php
+    $frontArticles = $GLOBALS['front_articles'] ?? [];
+    $leadArticle = $frontArticles[0] ?? null;
+    $leadTitle = $leadArticle['title'] ?? 'Aucun article publie';
+    $leadSummary = $leadArticle['summary'] ?? 'Publie un article depuis le BackOffice.';
+    $leadSlug = $leadArticle['slug'] ?? '';
+    $leadCategory = $leadArticle['category_name'] ?? 'Actualite';
+    $leadAuthor = $leadArticle['author_name'] ?? 'Redaction';
+    $leadDate = $leadArticle['published_at'] ?? '';
+    $leadImage = $leadArticle['image_path'] ?? 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=900&q=80';
+    ?>
 
     <!-- ─── HERO ─── -->
     <section class="hero" aria-label="À la une">
-        <!-- Lead story -->
-        <div class="articles-grid" id="articlesContainer">
-            <main>
-                <?= $content ?>
-            </main>
+        <article class="hero-lead">
+            <img src="<?= esc($leadImage) ?>" alt="<?= esc($leadTitle) ?>" loading="eager">
+            <div class="hero-lead-text">
+                <div class="section-tag"><?= esc($leadCategory) ?></div>
+                <h2><?= esc($leadTitle) ?></h2>
+                <p><?= esc($leadSummary) ?></p>
+                <div class="article-meta">
+                    <span class="byline"><?= esc($leadAuthor) ?></span>
+                    <span class="timestamp"><i class="far fa-clock"></i> <?= esc($leadDate) ?></span>
+                    <?php if (!empty($leadSlug)): ?>
+                        <a href="<?= esc(($base ?? '') . '/article/' . $leadSlug) ?>" class="read-more">Voir article <i class="fas fa-arrow-right"></i></a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </article>
+
+        <!-- Sidebar top -->
+        <div class="hero-sidebar-top">
+            <div class="sidebar-story">
+                <img src="https://images.unsplash.com/photo-1518432031352-d6fc5c10da5a?w=200&q=80" alt="Ukraine">
+                <div class="sidebar-story-text">
+                    <div class="section-tag">Europe</div>
+                    <h4>Ukraine : reprise des négociations de paix à Genève sous égide de l'ONU</h4>
+                    <span class="timestamp"><i class="far fa-clock"></i> il y a 1h</span>
+                </div>
+            </div>
+            <div class="sidebar-story">
+                <img src="https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?w=200&q=80" alt="Gaza">
+                <div class="sidebar-story-text">
+                    <div class="section-tag">Moyen-Orient</div>
+                    <h4>Gaza : cessez-le-feu fragile, l'aide humanitaire reprend son acheminement</h4>
+                    <span class="timestamp"><i class="far fa-clock"></i> il y a 2h</span>
+                </div>
+            </div>
+            <div class="sidebar-story">
+                <img src="https://images.unsplash.com/photo-1546422401-ae71c1ea0819?w=200&q=80" alt="Économie">
+                <div class="sidebar-story-text">
+                    <div class="section-tag">Économie</div>
+                    <h4>Zone euro : l'inflation repasse sous la barre des 2 % pour la première fois</h4>
+                    <span class="timestamp"><i class="far fa-clock"></i> il y a 3h</span>
+                </div>
+            </div>
+        </div>
+        <!-- Sidebar bottom -->
+        <div class="hero-sidebar-bottom">
+            <div class="section-tag">Tendance</div>
+            <div class="sidebar-story">
+                <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=200&q=80" alt="IA">
+                <div class="sidebar-story-text">
+                    <h4>L'intelligence artificielle générale : mythe ou réalité imminente ?</h4>
+                    <span class="timestamp"><i class="far fa-clock"></i> il y a 4h</span>
+                </div>
+            </div>
+            <div class="sidebar-story">
+                <img src="https://images.unsplash.com/photo-1601132359864-c974e79890ac?w=200&q=80" alt="Climat">
+                <div class="sidebar-story-text">
+                    <h4>COP33 : les pays du Sud réclament 500 milliards pour l'adaptation climatique</h4>
+                    <span class="timestamp"><i class="far fa-clock"></i> il y a 5h</span>
+                </div>
+            </div>
         </div>
     </section>
+
+    <!-- ─── FEATURED STRIP ─── -->
+    <div class="featured-strip">
+        <div class="strip-item">
+            <img src="https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=400&q=80" alt="Afrique">
+            <div class="section-tag">Afrique</div>
+            <h4>Mali, Burkina, Niger : la transition politique s'accélère dans le Sahel</h4>
+            <p>Trois ans après les coups d'État, les juntes consolident leur pouvoir et cherchent de nouveaux alliés.</p>
+        </div>
+        <div class="strip-item">
+            <img src="https://images.unsplash.com/photo-1569098644584-210bcd375b59?w=400&q=80" alt="Asie">
+            <div class="section-tag">Asie</div>
+            <h4>Mer de Chine méridionale : escalade des tensions sino-philippines</h4>
+            <p>De nouvelles escarmouches entre garde-côtes ont ravivé les inquiétudes d'une confrontation directe.</p>
+        </div>
+        <div class="strip-item">
+            <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400&q=80" alt="Économie">
+            <div class="section-tag">Science & Tech</div>
+            <h4>Fusion nucléaire : le réacteur ITER entre dans sa phase opérationnelle</h4>
+            <p>La communauté scientifique retient son souffle avant les premiers tests de plasma chaud.</p>
+        </div>
+    </div>
 
     <!-- ─── MAIN CONTENT + SIDEBAR ─── -->
     <div class="content-columns">
         <main class="main-column">
+
             <!-- Dernières actualités -->
             <div class="section-heading">
                 <h3><i class="fas fa-bolt"></i> Dernières actualités</h3>
                 <a href="#" class="see-all">Toutes les nouvelles <i class="fas fa-arrow-right"></i></a>
             </div>
             <div class="article-list" id="articlesContainer">
-                <?php if (!empty($articles)): ?>
-                    <?php foreach ($articles as $i => $article): ?>
-                        <?php if ($i === 0) continue; // Le premier est déjà affiché en hero ?>
-                        <article class="article-row">
-                            <?php if (!empty($article['image_path'])): ?>
-                                <img src="/miniprojetSEO/public/<?= esc($article['image_path']) ?>" alt="<?= esc($article['image_alt'] ?? $article['title']) ?>">
-                            <?php else: ?>
-                                <img src="https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=400&q=80" alt="Image par défaut">
-                            <?php endif; ?>
-                            <div class="article-row-body">
-                                <div class="section-tag"><?= esc($article['category_name'] ?? '') ?></div>
-                                <h4><a href="/miniprojetSEO/public/article/<?= esc($article['slug']) ?>"><?= esc($article['title']) ?></a></h4>
-                                <p><?= esc($article['summary']) ?></p>
-                                <div class="article-meta">
-                                    <span class="byline">Par <?= esc($article['author_name'] ?? '') ?></span>
-                                    <span class="timestamp"><i class="far fa-clock"></i> <?= esc($article['published_at']) ?></span>
-                                    <a href="/miniprojetSEO/public/article/<?= esc($article['slug']) ?>" class="read-more">Lire <i class="fas fa-arrow-right"></i></a>
-                                </div>
-                            </div>
-                        </article>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <p>Aucun article publié pour le moment.</p>
-                <?php endif; ?>
+                <?= $content ?>
             </div>
+
             <div class="separator"></div>
-            <!-- Actualités régionales et opinions peuvent être adaptés dynamiquement si besoin -->
+
+            <!-- Actualités régionales -->
+            <div class="section-heading">
+                <h3><i class="fas fa-globe-africa"></i> Actualités régionales</h3>
+                <a href="#" class="see-all">Voir la carte <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="region-block">
+                <div class="region-grid">
+                    <div class="region-item">
+                        <div class="region-flag">🌍 Afrique subsaharienne</div>
+                        <h4><a href="#">Sénégal : Dakar accueille le premier sommet africain sur l'intelligence artificielle</a></h4>
+                        <p>Cinquante délégations se réunissent pour définir un cadre éthique africain de l'IA.</p>
+                    </div>
+                    <div class="region-item">
+                        <div class="region-flag">🌎 Amérique latine</div>
+                        <h4><a href="#">Brésil : la déforestation de l'Amazonie chute de 62 % sous Lula, une tendance inédite</a></h4>
+                        <p>Les dernières données satellitaires confirment une inflexion historique dans la protection du poumon vert.</p>
+                    </div>
+                    <div class="region-item">
+                        <div class="region-flag">🌏 Asie du Sud-Est</div>
+                        <h4><a href="#">Myanmar : les rebelles de l'Alliance fraternelle contrôlent désormais un tiers du territoire</a></h4>
+                        <p>La junte militaire perd du terrain face à une coalition de groupes ethniques armés particulièrement bien organisés.</p>
+                    </div>
+                    <div class="region-item">
+                        <div class="region-flag">🕌 Maghreb</div>
+                        <h4><a href="#">Algérie-Maroc : premières discussions informelles depuis la rupture diplomatique de 2021</a></h4>
+                        <p>Des émissaires des deux pays se sont rencontrés à Genève sous l'égide de la Ligue arabe.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Opinion -->
+            <div class="opinion-strip">
+                <div class="section-heading" style="margin-bottom:0; border-bottom:none;">
+                    <h3><i class="fas fa-pen-nib"></i> Tribunes & Analyses</h3>
+                    <a href="#" class="see-all">Toutes les opinions <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="opinion-items">
+                    <div class="opinion-item">
+                        <div class="opinion-author">
+                            <div class="author-avatar">MF</div>
+                            <div class="author-info">
+                                <strong>Marie Fontaine</strong>
+                                <span>Correspondante diplomatique</span>
+                            </div>
+                        </div>
+                        <h4>Le multilatéralisme est-il encore possible dans un monde fragmenté ?</h4>
+                        <p>Après deux décennies de crises successives, les grandes institutions mondiales peinent à s'adapter à un monde où les puissances intermédiaires s'imposent.</p>
+                    </div>
+                    <div class="opinion-item">
+                        <div class="opinion-author">
+                            <div class="author-avatar">AK</div>
+                            <div class="author-info">
+                                <strong>Amara Kouyaté</strong>
+                                <span>Analyste Afrique subsaharienne</span>
+                            </div>
+                        </div>
+                        <h4>Sahel : pourquoi la France a perdu la bataille des récits</h4>
+                        <p>Au-delà des enjeux militaires, c'est une guerre de l'information que Paris a sous-estimée, laissant le terrain libre à d'autres narratifs.</p>
+                    </div>
+                    <div class="opinion-item">
+                        <div class="opinion-author">
+                            <div class="author-avatar">HV</div>
+                            <div class="author-info">
+                                <strong>Helena Voss</strong>
+                                <span>Analyste économique senior</span>
+                            </div>
+                        </div>
+                        <h4>La démondialisation : peur ou opportunité pour les pays émergents ?</h4>
+                        <p>Le repli des chaînes de valeur mondiales n'est pas une catastrophe pour tout le monde. Certaines économies en développement pourraient en tirer profit.</p>
+                    </div>
+                </div>
+            </div>
+
         </main>
+
+        <!-- ─── SIDEBAR ─── -->
         <aside class="sidebar-column">
-            <!-- Widgets sidebar (plus lus, newsletter, tags, etc.) peuvent aussi être rendus dynamiquement -->
+
             <div class="sidebar-widget">
                 <div class="widget-title"><i class="fas fa-fire"></i> Les plus lus</div>
                 <div class="most-read-item">
